@@ -1,22 +1,21 @@
 package util
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
 	"io/ioutil"
-	"time"
+	"reflect"
 	"strconv"
-	"encoding/json"
 	"strings"
+	"time"
 )
 
 // @Time    : 2018/3/27 10:00
 // @Author  : chenjw
-// @Site    : 
+// @Site    :
 // @File    : map.go
 // @Software: GoLand
-
 
 type Validable interface {
 	ValidF(f string, args ...interface{}) error

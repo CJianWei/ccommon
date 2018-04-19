@@ -78,8 +78,6 @@ func (In *Influx) Tick() {
 	}
 }
 
-
-
 func (In *Influx) newBp() (client.BatchPoints, error) {
 	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  In.Database,

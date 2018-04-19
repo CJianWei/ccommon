@@ -2,6 +2,8 @@ package util
 
 import (
 	"fmt"
+	"github.com/CJianWei/ccommon/db"
+	"github.com/astaxie/beego/logs"
 )
 
 // @Time    : 2018/3/27 10:09
@@ -21,7 +23,7 @@ type DynamicTest struct {
 	NextConcurrent   int               //下一步的并发数
 	TotalCount       int               //总的运行次数
 	TotalCountLeft   int               //剩下运行次数
-	StepRecord       []Map             //每次运行的记录
+	logf             string
 }
 
 func NewDynamicTest() *DynamicTest {
@@ -32,7 +34,7 @@ func NewDynamicTest() *DynamicTest {
 	new_p.ErrRate = new_p.getErrRate(0.001)
 	new_p.TotalCount = new_p.getTotalCount(10000)
 	new_p.TotalCountLeft = new_p.TotalCount
-	new_p.StepRecord = []Map{}
+	new_p.logf = new_p.getLogF("logD.log")
 	return new_p
 }
 
@@ -47,6 +49,19 @@ func (p *DynamicTest) getTotalCount(defaultTotalCount int) int {
 		p.SetTotalCount(defaultTotalCount)
 	}
 	return p.TotalCount
+}
+
+// 设置 日志路径
+func (p *DynamicTest) SetLogF(logf string) *DynamicTest {
+	p.logf = logf
+	return p
+}
+
+func (p *DynamicTest) getLogF(defaultLogf string) string {
+	if p.logf == "" {
+		p.SetLogF(defaultLogf)
+	}
+	return p.logf
 }
 
 // 设置百分比响应耗时上限
@@ -125,10 +140,42 @@ func (p *DynamicTest) AdjustNextConcurrent(rate map[float64]int64, errRate float
 	return
 }
 
-func (p *DynamicTest) Run(call func(int) error) error {
+func (p *DynamicTest) BeforeRecord() {
+	if len(p.logf) > 0 {
+		logs.Reset()
+		logs.SetLogger(logs.AdapterFile, fmt.Sprintf(`{"filename":"%s","level":7,"maxlines":0,"maxsize":0,"daily":false}`, p.logf))
+		logs.EnableFuncCallDepth(true)
+		logs.SetLogFuncCallDepth(3)
+		logs.Async(1e3)
+	}
+}
+
+func (p *DynamicTest) AfterRecord() {
+	if len(p.logf) > 0 {
+		logs.Reset()
+		logs.SetLogger(logs.AdapterConsole)
+	}
+}
+
+func (p *DynamicTest) Run(call func(int) error, extras ...Map) error {
 	var tidx_ int32 = 0
 	p.NextConcurrent = p.LoadTest.InitCount
 	var for_count int = 0
+
+	var open_log = true
+	var open_In = false
+	var tags = map[string]string{}
+	var In *db.Influx = nil
+	if len(extras) > 0 {
+		var ok1, ok2 bool
+		tags, ok1 = extras[0]["tags"].(map[string]string)
+		In, ok2 = extras[0]["In"].(*db.Influx)
+		if ok1 && ok2 && len(tags) > 0 && In != nil {
+			open_In = true
+		}
+		_, open_log = extras[0]["log"].(bool)
+	}
+
 	for {
 		for_count++
 		if p.TotalCount-1 <= int(tidx_) {
@@ -174,19 +221,39 @@ func (p *DynamicTest) Run(call func(int) error) error {
 			"timeout_tolerance": p.formate(p.PerCentRateEager),
 		}
 
-		//p.StepRecord = append(p.StepRecord, stepRecord)
 		p.AdjustNextConcurrent(loadTest.PerCentRate, loadTest.ErrorRate)
 		tidx_ = loadTest.GetTid(0) + 1
 		p.TotalCountLeft = p.TotalCount - int(tidx_)
 
-		fmt.Println("for number are:", for_count)
-		fmt.Println("config:", S2Json(conf))
-		fmt.Println("single result:", S2Json(stepRecord))
-		fmt.Println("tid are:", tidx_)
-		fmt.Println("TotalCountLeft are:", p.TotalCountLeft)
-		fmt.Println("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=")
-		fmt.Println("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=")
-		fmt.Println()
+		var log_to_file = func() {
+			p.BeforeRecord()
+			defer p.AfterRecord()
+			logs.Informational("for number are: %v", for_count)
+			logs.Informational("config: %v", S2Json(conf))
+			logs.Informational("single result: %v", S2Json(stepRecord))
+			logs.Informational("tid are: %v", tidx_)
+			logs.Informational("TotalCountLeft are: %v", p.TotalCountLeft)
+			logs.Informational("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=")
+			logs.Informational("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=")
+			logs.Informational("")
+		}
+
+		var log_to_Influx = func() {
+			for _k, _v := range stepRecord {
+				if _k == "timeout_tolerance" {
+					continue
+				} else {
+					In.AddPointSync(_k, tags, map[string]interface{}{"value": _v})
+				}
+			}
+
+		}
+		if open_log {
+			log_to_file()
+		}
+		if open_In {
+			log_to_Influx()
+		}
 	}
 	return nil
 }

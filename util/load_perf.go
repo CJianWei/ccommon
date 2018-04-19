@@ -410,7 +410,6 @@ func (load *LoadTest) BeforeRun() {
 		logs.EnableFuncCallDepth(true)
 		logs.SetLogFuncCallDepth(3)
 		logs.Async(1e3)
-
 	}
 }
 
@@ -430,7 +429,6 @@ func (load *LoadTest) AfterRun(btime int64) {
 		logs.Reset()
 		logs.SetLogger(logs.AdapterConsole)
 	}
-
 }
 
 func (load *LoadTest) Run(call func(int) error) error {

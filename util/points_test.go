@@ -19,4 +19,3 @@ func TestNewPoint(t *testing.T) {
 	logs.Informational("data %v", end)
 
 }
-

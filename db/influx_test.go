@@ -2,10 +2,10 @@ package db
 
 import (
 	"github.com/Centny/gwf/log"
+	"github.com/Centny/gwf/tutil"
 	"github.com/Centny/gwf/util"
 	"github.com/influxdata/influxdb/client/v2"
 	"testing"
-	"github.com/Centny/gwf/tutil"
 )
 
 // @Time    : 2018/3/26 18:06
@@ -19,7 +19,6 @@ func TestA(t *testing.T) {
 	In.InitDb()
 	go In.Tick()
 
-
 	tags := map[string]string{
 		"cpu": "cpu-total",
 	}
@@ -28,8 +27,8 @@ func TestA(t *testing.T) {
 	}
 	measurement := "cpu_usage"
 	now := util.Now()
-	for j:=0;j<5;j++{
-		tutil.DoPerf(10,"log.log", func(i int) {
+	for j := 0; j < 5; j++ {
+		tutil.DoPerf(10, "log.log", func(i int) {
 			pts := []*client.Point{}
 			for index := 0; index < 100; index++ {
 				//time.Sleep(time.Millisecond)
@@ -46,8 +45,8 @@ func TestA(t *testing.T) {
 	log.D("cost %v", util.Now()-now)
 
 	now2 := util.Now()
-	for j:=0;j<5;j++{
-		tutil.DoPerf(10,"log.log", func(i int){
+	for j := 0; j < 5; j++ {
+		tutil.DoPerf(10, "log.log", func(i int) {
 			pts := []*client.Point{}
 			for index := 0; index < 100; index++ {
 				//time.Sleep(time.Millisecond)
@@ -64,10 +63,9 @@ func TestA(t *testing.T) {
 	}
 	log.D("cost %v", util.Now()-now2)
 
-
 	now3 := util.Now()
-	for j:=0;j<5;j++{
-		tutil.DoPerf(10,"log.log", func(i int){
+	for j := 0; j < 5; j++ {
+		tutil.DoPerf(10, "log.log", func(i int) {
 			pts := []*client.Point{}
 			for index := 0; index < 100; index++ {
 				//time.Sleep(time.Millisecond)
@@ -85,12 +83,9 @@ func TestA(t *testing.T) {
 	In.Flush()
 	log.D("cost %v", util.Now()-now3)
 
-
-
-
 	now4 := util.Now()
-	for j:=0;j<5;j++{
-		tutil.DoPerf(10,"log.log", func(i int){
+	for j := 0; j < 5; j++ {
+		tutil.DoPerf(10, "log.log", func(i int) {
 			pts := []*client.Point{}
 			for index := 0; index < 100; index++ {
 				//time.Sleep(time.Millisecond)
@@ -106,6 +101,5 @@ func TestA(t *testing.T) {
 	}
 	In.Flush()
 	log.D("cost %v", util.Now()-now4)
-
 
 }

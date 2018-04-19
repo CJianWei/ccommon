@@ -6,21 +6,18 @@ type Int64Slice struct {
 
 func NewInt64Slice(data []int64) *Int64Slice {
 	return &Int64Slice{
-		Data:data,
+		Data: data,
 	}
 }
 
-
-func (s *Int64Slice)Len() int {
+func (s *Int64Slice) Len() int {
 	return len(s.Data)
 }
 
-func (s *Int64Slice)Less(i,j int) bool {
+func (s *Int64Slice) Less(i, j int) bool {
 	return s.Data[i] <= s.Data[j]
 }
 
-func (s *Int64Slice)Swap(i,j int)  {
-	s.Data[i],s.Data[j] = s.Data[j],s.Data[i]
+func (s *Int64Slice) Swap(i, j int) {
+	s.Data[i], s.Data[j] = s.Data[j], s.Data[i]
 }
-
-
