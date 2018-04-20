@@ -406,7 +406,7 @@ func (load *LoadTest) perDone(btime, etime int64, err error) {
 func (load *LoadTest) BeforeRun() {
 	if len(load.logf) > 0 {
 		logs.Reset()
-		logs.SetLogger(logs.AdapterFile, fmt.Sprintf(`{"filename":"%s","level":7,"maxlines":0,"maxsize":0,"daily":true,"maxdays":10}`, load.logf))
+		logs.SetLogger(logs.AdapterFile, fmt.Sprintf(`{"filename":"%s","level":7,"maxlines":0,"maxsize":0,"daily":false}`, load.logf))
 		logs.EnableFuncCallDepth(true)
 		logs.SetLogFuncCallDepth(3)
 		logs.Async(1e3)
