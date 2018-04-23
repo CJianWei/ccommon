@@ -172,7 +172,7 @@ func HPost(url_addr string, fields map[string]string, header map[string]string, 
 	return res.StatusCode, string(bys), err
 }
 
-func HPostM(proxy_addr string, url string, fields map[string]string, header map[string]string, fkey string, fp string, extra Map) (int, Map, error) {
+func HPostM(url string, fields map[string]string, header map[string]string, fkey string, fp string, extra Map) (int, Map, error) {
 	code, res, err := HPost(url, fields, header, fkey, fp, extra)
 	if err != nil {
 		return code, Map{}, err
@@ -185,8 +185,8 @@ func HPostM(proxy_addr string, url string, fields map[string]string, header map[
 	}
 }
 
-func HPostBodyM(proxy_addr string, url_addr string, headers map[string]string, buf io.Reader, extra Map) (int, Map, error) {
-	code, res, err := HPostBody(proxy_addr, url_addr, headers, buf, extra)
+func HPostBodyM(url_addr string, headers map[string]string, buf io.Reader, extra Map) (int, Map, error) {
+	code, res, err := HPostBody(url_addr, headers, buf, extra)
 	if err != nil {
 		return code, Map{}, err
 	} else {
@@ -198,7 +198,7 @@ func HPostBodyM(proxy_addr string, url_addr string, headers map[string]string, b
 	}
 }
 
-func HPostBody(proxy_addr string, url_addr string, headers map[string]string, buf io.Reader, extra Map) (int, string, error) {
+func HPostBody(url_addr string, headers map[string]string, buf io.Reader, extra Map) (int, string, error) {
 	c := getClient(extra)
 	req, err := http.NewRequest("POST", url_addr, buf)
 	if err != nil {
