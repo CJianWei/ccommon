@@ -95,6 +95,18 @@ func (p *DynamicTest) getErrRate(defaultErrRate float64) float64 {
 	return p.ErrRate
 }
 
+/*
+	@Author:cjw
+	@desc:格式化map，将key类型为float64的转化为str
+	@params：
+		param		type					detail
+		m			map[float64]int64		待转化对象
+	@ret：
+		param		type					detail
+		ret_m		map[string]interface{}	已经转化的对象
+	@changeRecord：
+		date		who					detail
+*/
 func (p *DynamicTest) formate(m map[float64]int64) map[string]interface{} {
 	ret_m := map[string]interface{}{}
 	for k, v := range m {
@@ -103,6 +115,17 @@ func (p *DynamicTest) formate(m map[float64]int64) map[string]interface{} {
 	return ret_m
 }
 
+/*
+	@Author:cjw
+	@desc:导出当前的配置
+	@params：
+		param		type		detail
+	@ret：
+		param		type		detail
+		m			Map			具体的配置信息
+	@changeRecord：
+		date		who			detail
+*/
 func (p *DynamicTest) ExportConf() Map {
 	return Map{
 		"PerCentRateEager": p.formate(p.PerCentRateEager),
@@ -111,6 +134,18 @@ func (p *DynamicTest) ExportConf() Map {
 	}
 }
 
+/*
+	@Author:cjw
+	@desc:调整并发数
+	@params：
+		param		type				detail
+		rate		map[float64]int64	各个维度的响应时延
+		errRate		float64				错误率
+	@ret：
+		param		type		detail
+	@changeRecord：
+		date		who					detail
+*/
 func (p *DynamicTest) AdjustNextConcurrent(rate map[float64]int64, errRate float64) {
 	var down = func() {
 		p.NextConcurrent = p.NextConcurrent - p.LoadTest.per_add
@@ -140,6 +175,14 @@ func (p *DynamicTest) AdjustNextConcurrent(rate map[float64]int64, errRate float
 	return
 }
 
+/*
+	@Author:cjw
+	@desc:redirect the log msg to file
+	@params
+		param		type				detail
+	@changeRecord
+		date		who					detail
+*/
 func (p *DynamicTest) BeforeRecord() {
 	if len(p.logf) > 0 {
 		logs.Reset()
@@ -150,6 +193,14 @@ func (p *DynamicTest) BeforeRecord() {
 	}
 }
 
+/*
+	@Author:cjw
+	@desc:redirect the log msg to console
+	@params
+		param		type				detail
+	@changeRecord
+		date		who					detail
+*/
 func (p *DynamicTest) AfterRecord() {
 	if len(p.logf) > 0 {
 		logs.Reset()
@@ -157,6 +208,16 @@ func (p *DynamicTest) AfterRecord() {
 	}
 }
 
+/*
+	@Author:cjw
+	@desc:通过调用负载测试的方式运行一段时间之后分析结果，再通过得到的结果计算下一次并发数的值
+	@params
+		param		type				detail
+		call		func(int) error		待测试对象
+		extras		[]Map				记录额外的测试信息
+	@changeRecord
+		date		who					detail
+*/
 func (p *DynamicTest) Run(call func(int) error, extras ...Map) error {
 	var tidx_ int32 = 0
 	p.NextConcurrent = p.LoadTest.InitCount
@@ -246,7 +307,8 @@ func (p *DynamicTest) Run(call func(int) error, extras ...Map) error {
 					In.AddPointSync(_k, tags, map[string]interface{}{"value": _v})
 				}
 			}
-
+			// write data to db immediately
+			In.Flush()
 		}
 		if open_log {
 			log_to_file()
