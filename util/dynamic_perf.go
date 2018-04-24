@@ -264,7 +264,8 @@ func (p *DynamicTest) Run(call func(int) error, extras ...Map) error {
 		loadTest.Run(call)
 		loadTest.Clear()
 		stepRecord := Map{
-			"concurrent":        loadTest.EagerCurrent,
+			"runningMax":        loadTest.RunningMax,
+			"eagerConcurrent":   loadTest.EagerCurrent,
 			"success_ave":       loadTest.MonitorObj.LoadSingle(SUCCESS).Ave,
 			"success_max":       loadTest.MonitorObj.LoadSingle(SUCCESS).Max,
 			"success_min":       loadTest.MonitorObj.LoadSingle(SUCCESS).Min,
